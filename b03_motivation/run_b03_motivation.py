@@ -1144,8 +1144,9 @@ async def run(args: argparse.Namespace) -> dict:
         unknown = sorted(set(policies) - set(POLICY_FLAGS))
         if unknown:
             raise ValueError(f"unknown policies: {','.join(unknown)}")
+        point_id = point["point_id"]
         for rep in range(args.repetitions):
-            trace_path = root / "traces" / f"b03_trace_{point['point_id']}_rep{rep}.csv"
+            trace_path = root / "traces" / f"b03_trace_{point_id}_n{pargs.n_requests}_rep{rep}.csv"
             trace = make_trace(trace_path, rep, pargs)
             trace_hash = sha256_file(trace_path)
             plan: list[tuple[str, float | None, bool]] = [("ideal", None, False)]
@@ -1160,7 +1161,7 @@ async def run(args: argparse.Namespace) -> dict:
             else:
                 order = list(plan)
                 random.Random(stable_int(args.seed, "cell-order", point["point_id"], rep)).shuffle(order)
-            key = f"{point['point_id']}:rep{rep}"
+            key = f"{point_id}:rep{rep}"
             order_by_rep[key] = [
                 "ideal" if policy == "ideal" else f"{policy}@rho{rho}" + ("+bg" if background else "")
                 for policy, rho, background in order

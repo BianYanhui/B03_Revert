@@ -264,3 +264,17 @@ Verdict conditions A–E (thresholds fixed before analysis; see
 
 `STRONGLY SUPPORTED` = all five hold; `SUPPORTED` = ≥ 4; `WEAKLY SUPPORTED`
 = 3; otherwise `NOT SUPPORTED`.  If A fails, B03 stops per the phase plan.
+
+### Amendment 1 (pre-declared before the alpha/overlap/conc runs)
+
+Condition A's min-cell guard applies only to cells with ≥ 10 evaluable
+updates (`A_min_cell_updates = 10`): the base workload (96 measured requests
+over 128 lineages at Zipf α = 0.55) yields a long-tailed number of future
+uses per digest, and a 1-update cell (agg_full@ρ1.0 in the first core run)
+statistically cannot represent a rate.  The pooled rate and the per-cell
+rates remain unfiltered in `rq1_summary`; only the weakest-cell guard is
+size-gated.  Additionally, because most updates are delivered late in a
+cell (signaling delay 8–33 s at ρ ≥ 0.8 against a ~50 s request stream),
+the RQ1/RQ2/RQ3 population is "forwarded updates with ≥ 1 future use of
+their digest" — the deployment-relevant notion of a decision-relevant
+update — and updates with no future use are reported separately.

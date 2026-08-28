@@ -38,6 +38,8 @@ EPS_NET_GAIN_MS = 1.0          # |net gain| below this counts as near-zero
 CONDITION = {
     "A_min_irrelevant_rate": 0.50,   # pooled decision-irrelevant fraction
     "A_min_cell_irrelevant": 0.30,   # weakest cell must still be substantial
+    "A_min_cell_updates": 10,        # cells with fewer evaluable updates are
+                                     # excluded from the min-cell guard
     "B_max_clean_flip_share": 0.70,  # <70% of flips clearly positive => heterogeneity
     "B_min_neg_or_zero_share": 0.20, # >=20% of flips near-zero/negative
     "C_min_top20_share": 0.50,       # top-20% updates hold >=50% of positive value
@@ -197,10 +199,13 @@ def leave_one_rep_out(rows: list[dict], features: list[str], label_fn) -> tuple[
 # main analysis
 # --------------------------------------------------------------------------
 
-def analyze(run_dir: Path, tag: str, j: int, prefill_tokens_per_ms: float,
+def analyze(run_dir: Path, tags: list[str], j: int, prefill_tokens_per_ms: float,
             queue_penalty_ms: float, guard_ms: float) -> dict:
     results = run_dir / "results"
-    cells = load_csv(results / f"cells_{tag}.csv")
+    out_tag = "pooled" if len(tags) > 1 else tags[0]
+    cells: list[dict] = []
+    for tag in tags:
+        cells.extend(load_csv(results / f"cells_{tag}.csv"))
     link_cells = [row for row in cells if row["policy"] != "ideal"]
     all_update_rows: list[dict] = []
     all_horizon_rows: list[dict] = []
@@ -234,10 +239,11 @@ def analyze(run_dir: Path, tag: str, j: int, prefill_tokens_per_ms: float,
                     and to_float(row.get("send_ts_unix")) >= to_float(row.get("use_dispatch_time_unix"), float("inf")))
         add_sanity(f"{cell_tag}: no future information in pre-transmission features", leaks == 0, f"leaking_rows={leaks}")
 
-    run_checks_path = results / f"sanity_checks_{tag}.csv"
-    if run_checks_path.exists():
-        for row in load_csv(run_checks_path):
-            add_sanity(f"run integrity: {row['check_name']}", row["status"] == "PASS", str(row.get("offending_rows", "")))
+    run_checks_paths = [results / f"sanity_checks_{tag}.csv" for tag in tags]
+    for run_checks_path in run_checks_paths:
+        if run_checks_path.exists():
+            for row in load_csv(run_checks_path):
+                add_sanity(f"run integrity: {row['check_name']}", row["status"] == "PASS", str(row.get("offending_rows", "")))
 
     aggregate_rows = all_update_rows
     for row in aggregate_rows:
@@ -363,9 +369,12 @@ def analyze(run_dir: Path, tag: str, j: int, prefill_tokens_per_ms: float,
     numbers: dict = {"eps_net_gain_ms": EPS_NET_GAIN_MS, **CONDITION}
     if rq1_rows:
         pooled_irrelevant = 1.0 - sum(int(row.get("decision_flip") or 0) for rows in groups.values() for row in rows) / max(1, sum(len(rows) for rows in groups.values()))
-        min_cell = min(row["decision_irrelevant_rate"] for row in rq1_rows)
+        guarded = [row for row in rq1_rows if row["n_updates_next_use"] >= CONDITION["A_min_cell_updates"]]
+        min_cell = min((row["decision_irrelevant_rate"] for row in guarded), default=float("nan"))
         numbers["A_pooled_irrelevant_rate"] = pooled_irrelevant
         numbers["A_min_cell_irrelevant_rate"] = min_cell
+        numbers["A_min_cell_updates_threshold"] = CONDITION["A_min_cell_updates"]
+        numbers["A_cells_guarded"] = len(guarded)
         numbers["A_hold"] = bool(pooled_irrelevant >= CONDITION["A_min_irrelevant_rate"] and min_cell >= CONDITION["A_min_cell_irrelevant"])
     if rq2_rows:
         all_flips = [row for rows in flip_groups.values() for row in rows]
@@ -434,16 +443,16 @@ def analyze(run_dir: Path, tag: str, j: int, prefill_tokens_per_ms: float,
 
     # ---------------- outputs ----------------
     out_dir = results / AGG_DIR_NAME
-    write_csv(out_dir / f"b03_update_counterfactuals_{tag}.csv", aggregate_rows)
-    write_csv(out_dir / f"b03_update_horizons_{tag}.csv", all_horizon_rows)
-    write_csv(out_dir / f"rq1_summary_{tag}.csv", rq1_rows)
-    write_csv(out_dir / f"rq2_flip_value_{tag}.csv", rq2_rows)
-    write_csv(out_dir / f"rq3_concentration_{tag}.csv", rq3_rows)
-    write_csv(out_dir / f"rq4_predictability_{tag}.csv", rq4_rows + pooled_rq4)
-    write_csv(out_dir / f"sanity_checks_b03_{tag}.csv", sanity_rows)
-    (out_dir / f"report_numbers_{tag}.json").write_text(json.dumps(numbers, indent=2, default=str))
+    write_csv(out_dir / f"b03_update_counterfactuals_{out_tag}.csv", aggregate_rows)
+    write_csv(out_dir / f"b03_update_horizons_{out_tag}.csv", all_horizon_rows)
+    write_csv(out_dir / f"rq1_summary_{out_tag}.csv", rq1_rows)
+    write_csv(out_dir / f"rq2_flip_value_{out_tag}.csv", rq2_rows)
+    write_csv(out_dir / f"rq3_concentration_{out_tag}.csv", rq3_rows)
+    write_csv(out_dir / f"rq4_predictability_{out_tag}.csv", rq4_rows + pooled_rq4)
+    write_csv(out_dir / f"sanity_checks_b03_{out_tag}.csv", sanity_rows)
+    (out_dir / f"report_numbers_{out_tag}.json").write_text(json.dumps(numbers, indent=2, default=str))
 
-    figures(run_dir, tag, rq1_rows, rq2_rows, pareto_curves, all_rows, pooled_rq4)
+    figures(run_dir, out_tag, rq1_rows, rq2_rows, pareto_curves, all_rows, pooled_rq4)
     return numbers
 
 
@@ -600,14 +609,15 @@ def figures(run_dir: Path, tag: str, rq1_rows, rq2_rows, pareto_curves, update_r
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--run-dir", default="/home/byh/B03/b03_motivation/results")
-    parser.add_argument("--tag", required=True)
+    parser.add_argument("--run-dir", default="/home/byh/B03/b03_motivation")
+    parser.add_argument("--tag", required=True, help="run tag; comma-separated list is pooled (out tag 'pooled')")
     parser.add_argument("--j", type=int, default=4)
     parser.add_argument("--prefill-tokens-per-ms", type=float, default=50.0)
     parser.add_argument("--queue-penalty-ms", type=float, default=2.0)
     parser.add_argument("--guard-ms", type=float, default=0.5)
     args = parser.parse_args()
-    numbers = analyze(Path(args.run_dir), args.tag, args.j, args.prefill_tokens_per_ms,
+    tags = [value.strip() for value in args.tag.split(",") if value.strip()]
+    numbers = analyze(Path(args.run_dir), tags, args.j, args.prefill_tokens_per_ms,
                       args.queue_penalty_ms, args.guard_ms)
     print(json.dumps(numbers, indent=2, default=str))
 
