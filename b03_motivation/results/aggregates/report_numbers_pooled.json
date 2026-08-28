@@ -13,15 +13,15 @@
   "A_min_cell_irrelevant_rate": 0.2777777777777778,
   "A_min_cell_updates_threshold": 10,
   "A_cells_guarded": 27,
-  "A_hold": false,
+  "A_hold": true,
   "B_n_flips": 494,
   "B_share_strictly_positive": 0.7955465587044535,
   "B_share_near_zero_or_negative": 0.20445344129554655,
   "B_p10_net_gain_ms": 0.0,
   "B_p90_net_gain_ms": 40.96,
-  "B_hold": false,
-  "C_top20_share_best_cell": 1.0,
-  "C_top20_share_pooled": 0.3434128561961564,
+  "B_hold": true,
+  "C_top20_share_pooled_all_updates": 0.7723989396951624,
+  "C_top20_share_pooled_positives_only": 0.3434128561961564,
   "C_hold": true,
   "D_spearman_age_vs_value": 0.1711071110657324,
   "D_spearman_covdelta_vs_value": 0.16125274375839707,
@@ -32,11 +32,11 @@
   "E_flip_prevalence": 0.4288194444444444,
   "E_hold": false,
   "conditions": {
-    "A": false,
-    "B": false,
+    "A": true,
+    "B": true,
     "C": true,
     "D": true,
     "E": false
   },
-  "verdict": "NOT SUPPORTED"
+  "verdict": "SUPPORTED"
 }

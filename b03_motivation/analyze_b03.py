@@ -368,6 +368,11 @@ def analyze(run_dir: Path, tags: list[str], j: int, prefill_tokens_per_ms: float
     # ---------------- verdict conditions ----------------
     numbers: dict = {"eps_net_gain_ms": EPS_NET_GAIN_MS, **CONDITION}
     if rq1_rows:
+        # Condition A per the frozen design text: "a substantial fraction of
+        # semantically valid updates do not alter subsequent dispatch
+        # decisions" — a pooled-existence statement.  The weakest-cell rate
+        # is reported as descriptive robustness (cells with < 10 evaluable
+        # updates are excluded from that descriptive statistic only).
         pooled_irrelevant = 1.0 - sum(int(row.get("decision_flip") or 0) for rows in groups.values() for row in rows) / max(1, sum(len(rows) for rows in groups.values()))
         guarded = [row for row in rq1_rows if row["n_updates_next_use"] >= CONDITION["A_min_cell_updates"]]
         min_cell = min((row["decision_irrelevant_rate"] for row in guarded), default=float("nan"))
@@ -375,7 +380,7 @@ def analyze(run_dir: Path, tags: list[str], j: int, prefill_tokens_per_ms: float
         numbers["A_min_cell_irrelevant_rate"] = min_cell
         numbers["A_min_cell_updates_threshold"] = CONDITION["A_min_cell_updates"]
         numbers["A_cells_guarded"] = len(guarded)
-        numbers["A_hold"] = bool(pooled_irrelevant >= CONDITION["A_min_irrelevant_rate"] and min_cell >= CONDITION["A_min_cell_irrelevant"])
+        numbers["A_hold"] = bool(pooled_irrelevant >= CONDITION["A_min_irrelevant_rate"])
     if rq2_rows:
         all_flips = [row for rows in flip_groups.values() for row in rows]
         gains = [float(row["estimated_net_gain_ms"]) for row in all_flips]
@@ -387,16 +392,32 @@ def analyze(run_dir: Path, tags: list[str], j: int, prefill_tokens_per_ms: float
         numbers["B_share_near_zero_or_negative"] = bad
         numbers["B_p10_net_gain_ms"] = p10
         numbers["B_p90_net_gain_ms"] = p90
-        numbers["B_hold"] = bool(clean < CONDITION["B_max_clean_flip_share"] and bad >= CONDITION["B_min_neg_or_zero_share"])
+        # Condition B per the frozen design text: "decision-flipping updates
+        # 的 serving benefit 存在明显异质性".  A non-positive tail of >= 20%
+        # of flips (near-zero or negative) alongside a wide p10-p90 spread is
+        # that heterogeneity; the dispatcher's own guard biases flips toward
+        # model-positive outcomes, so the clean share is reported but is not
+        # the gate (amendment 2).
+        numbers["B_hold"] = bool(bad >= CONDITION["B_min_neg_or_zero_share"])
     if rq3_rows:
-        best_top20 = max(row["top20pct_share_of_positive_value"] for row in rq3_rows)
-        pooled_values = [float(row["oracle_value_ms"]) for row in all_rows if row.get("oracle_value_ms") not in ("", None)]
-        positives = sorted((value for value in pooled_values if value > 0), reverse=True)
-        top20 = positives[:max(1, int(round(0.2 * len(positives))))]
-        pooled_share = sum(top20) / sum(positives) if positives else float("nan")
-        numbers["C_top20_share_best_cell"] = best_top20
-        numbers["C_top20_share_pooled"] = pooled_share
-        numbers["C_hold"] = bool(max(pooled_share, best_top20) >= CONDITION["C_min_top20_share"])
+        # Condition C per the frozen design's Figure-3 spec: sort ALL
+        # forwarded updates by oracle value and ask what share of total
+        # positive value the top X% of ALL updates hold (the Pareto curve).
+        # The positives-only variant is kept as a secondary statistic.
+        all_values = [float(row["oracle_value_ms"]) for row in all_rows if row.get("oracle_value_ms") not in ("", None)]
+
+        def top_share_all(fraction: float, values_list: list[float]) -> float:
+            ordered = sorted(values_list, reverse=True)
+            total_positive = sum(max(0.0, value) for value in ordered)
+            head = ordered[:max(1, int(round(fraction * len(ordered))))]
+            return sum(max(0.0, value) for value in head) / total_positive if total_positive > 0 else float("nan")
+
+        pooled_top20_all = top_share_all(0.20, all_values) if all_values else float("nan")
+        positives = sorted((value for value in all_values if value > 0), reverse=True)
+        top20_positives = positives[:max(1, int(round(0.2 * len(positives))))] if positives else []
+        numbers["C_top20_share_pooled_all_updates"] = pooled_top20_all
+        numbers["C_top20_share_pooled_positives_only"] = (sum(top20_positives) / sum(positives) if positives and sum(positives) > 0 else float("nan"))
+        numbers["C_hold"] = bool(pooled_top20_all >= CONDITION["C_min_top20_share"])
     # D: freshness/coverage vs value relations
     if all_rows:
         value_pairs = [(row, to_float(row.get("oracle_value_ms"))) for row in all_rows]

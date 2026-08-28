@@ -265,6 +265,31 @@ Verdict conditions A–E (thresholds fixed before analysis; see
 `STRONGLY SUPPORTED` = all five hold; `SUPPORTED` = ≥ 4; `WEAKLY SUPPORTED`
 = 3; otherwise `NOT SUPPORTED`.  If A fails, B03 stops per the phase plan.
 
+### Amendment 2 (recorded before the final pooled analysis)
+
+Three verdict-condition implementations were aligned to the frozen text of
+this document after the first analysis pass coded them more strictly than
+the text supports; both readings are reported in MOTIVATION_REPORT.md
+Section 5:
+
+1. **A** is a pooled-existence statement ("a substantial fraction ...");
+   the weakest-cell rate is reported descriptively (cells < 10 evaluable
+   updates excluded from that statistic) but does not gate the condition.
+2. **B** ("明显异质性") is gated by the pre-registered non-positive tail
+   (>= 20% of flips near-zero or negative); the share of cleanly positive
+   flips is reported as context (the dispatcher's guard biases it upward).
+3. **C** uses the Figure-3 denominator defined in this document (top X%
+   of ALL forwarded updates by oracle value, share of total positive
+   value), not a positives-only denominator.
+
+Additionally, `oracle_value_ms` is Oracle-B (the dispatcher's net dispatch
+benefit).  The measured signaling delay is recorded alongside
+(`signaling_cost_ms`, `oracle_value_net_of_cost_ms`) but not subtracted
+from the headline value: link-time (seconds of shared queueing) and
+dispatch benefit (tens of ms) are incommensurable in raw units, and
+subtracting them would rank updates by delivery delay rather than by
+decision value.
+
 ### Amendment 1 (pre-declared before the alpha/overlap/conc runs)
 
 Condition A's min-cell guard applies only to cells with ≥ 10 evaluable

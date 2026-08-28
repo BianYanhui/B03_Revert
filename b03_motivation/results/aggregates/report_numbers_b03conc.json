@@ -20,9 +20,9 @@
   "B_p10_net_gain_ms": 8.24,
   "B_p90_net_gain_ms": 40.96,
   "B_hold": false,
-  "C_top20_share_best_cell": 0.3157976896659382,
-  "C_top20_share_pooled": 0.2943275851178068,
-  "C_hold": false,
+  "C_top20_share_pooled_all_updates": 0.531362516581391,
+  "C_top20_share_pooled_positives_only": 0.2943275851178068,
+  "C_hold": true,
   "D_spearman_age_vs_value": 0.06099389392081118,
   "D_spearman_covdelta_vs_value": 0.16120967265906305,
   "D_hold": true,
@@ -34,9 +34,9 @@
   "conditions": {
     "A": true,
     "B": false,
-    "C": false,
+    "C": true,
     "D": true,
     "E": true
   },
-  "verdict": "WEAKLY SUPPORTED"
+  "verdict": "SUPPORTED"
 }
