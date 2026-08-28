@@ -131,19 +131,29 @@ def evaluate_cell(updates_path: Path, requests_path: Path, j: int, prefill_token
     replay_checked = 0
     replay_matched = 0
 
+    # World-1 VALIDATION: replaying the recorded snapshot UNCHANGED must
+    # reproduce the real recorded decision for EVERY dispatched request.
+    # This certifies the replay machinery before it is used for World 0.
+    for snapshot in requests:
+        if snapshot.get("snapshot_rr") in ("", None):
+            continue
+        cov_w1 = parse_int_list(snapshot["snapshot_cov_row"])
+        if not cov_w1:
+            continue
+        replay_checked += 1
+        result = cf_choose(j, prefill_tokens_per_ms, queue_penalty_ms, guard_ms, snapshot["digest"],
+                           cov_w1, parse_int_list(snapshot["snapshot_loads"]), int(snapshot["snapshot_rr"]))
+        if result.target == int(snapshot["world1_target"]) and result.affinity == bool(int(snapshot["world1_affinity"])):
+            replay_matched += 1
+
     # columns copied verbatim from the ledger row into every output row
     # (send-time features for RQ4 + cell context; computed fields below
     # override nothing here because they are added after **base).
     passthrough = [key for key in (updates[0] if updates else {}) if key]
 
     def replay(snapshot: dict, cov_row: list[int]) -> ChooseResult:
-        nonlocal replay_checked, replay_matched
-        result = cf_choose(j, prefill_tokens_per_ms, queue_penalty_ms, guard_ms, snapshot["digest"],
-                           cov_row, parse_int_list(snapshot["snapshot_loads"]), int(snapshot["snapshot_rr"]))
-        replay_checked += 1
-        if result.target == int(snapshot["world1_target"]) and result.affinity == bool(int(snapshot["world1_affinity"])):
-            replay_matched += 1
-        return result
+        return cf_choose(j, prefill_tokens_per_ms, queue_penalty_ms, guard_ms, snapshot["digest"],
+                         cov_row, parse_int_list(snapshot["snapshot_loads"]), int(snapshot["snapshot_rr"]))
 
     max_horizon = max(horizons)
     for update in updates:

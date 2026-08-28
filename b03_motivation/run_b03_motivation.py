@@ -463,14 +463,21 @@ class LinkRuntime:
                     continue
                 if kind == K_UP:
                     # B03: log the forwarded update BEFORE the index mutates
-                    # (read-only; no dispatch behavior depends on this).
+                    # (read-only; no dispatch behavior depends on this).  The
+                    # guard keeps a recorder bug from killing the stream.
                     if self.cf is not None:
-                        self.cf.on_delivery(kind, instance, name, coverage, t_send, now, self.dispatcher)
+                        try:
+                            self.cf.on_delivery(kind, instance, name, coverage, seq, t_send, now, self.dispatcher)
+                        except Exception as exc:
+                            print(json.dumps({"event": "cf_delivery_error", "error": repr(exc)}), flush=True)
                     self.dispatcher.apply_upsert(instance, name, coverage, t_send, now)
                     self.delays["upsert"].append(now - t_send)
                 else:
                     if self.cf is not None:
-                        self.cf.on_delivery(kind, instance, name, coverage, t_send, now, self.dispatcher)
+                        try:
+                            self.cf.on_delivery(kind, instance, name, coverage, seq, t_send, now, self.dispatcher)
+                        except Exception as exc:
+                            print(json.dumps({"event": "cf_delivery_error", "error": repr(exc)}), flush=True)
                     self.dispatcher.apply_tombstone(instance, name)
                     self.delays["tombstone"].append(now - t_send)
                 self.received += 1
@@ -1214,7 +1221,7 @@ def smoke_report(cells: list[dict], checks: list[dict], raw_dir: Path) -> list[d
 def main() -> None:
     global URLS
     parser = argparse.ArgumentParser()
-    parser.add_argument("--out-dir", default="/home/byh/B03/b03_motivation/results")
+    parser.add_argument("--out-dir", default="/home/byh/B03/b03_motivation")
     parser.add_argument("--tag", default="b03")
     parser.add_argument("--preset", default="smoke", choices=sorted(PRESETS),
                         help="workload point set (see PRESETS; EXPERIMENT_DESIGN.md)")

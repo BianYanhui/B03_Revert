@@ -1,0 +1,11 @@
+check,status,detail
+rep0_base_agg_full@rho1.3_b03smoke4: World-1 replay reproduces every real decision,PASS,replayed=32 matched=32
+rep0_base_agg_full@rho1.3_b03smoke4: ledger covers exactly the delivered frames,PASS,ledger=31 delivered=31
+rep0_base_agg_full@rho1.3_b03smoke4: no future information in pre-transmission features,PASS,leaking_rows=0
+rep0_base_agg_full@rho0.8_b03smoke4: World-1 replay reproduces every real decision,PASS,replayed=32 matched=32
+rep0_base_agg_full@rho0.8_b03smoke4: ledger covers exactly the delivered frames,PASS,ledger=32 delivered=32
+rep0_base_agg_full@rho0.8_b03smoke4: no future information in pre-transmission features,PASS,leaking_rows=0
+run integrity: same logical request has byte-identical prompt and input token count across cells,PASS,0
+run integrity: same logical request has fixed output token count across cells,PASS,0
+run integrity: vLLM usage telemetry present for every request,PASS,0
+run integrity: transient live retries recorded in raw data,PASS,0

@@ -1,0 +1,7 @@
+check,status,detail
+a: ideal bypasses the network,PASS,"ideal network delay field absent/empty, upserts_per_s=3.046859269434936"
+b: real-kernel link responds to rho,PASS,p95 rho0.8=10.081s rho1.3=11.632s backlog=1702B
+c: forwarded-update ledger recorded for every link cell,PASS,ledger_rows=63 missing_send_features=0
+d: ledger covers exactly the delivered frames,PASS,ledger_rows=63 net_msgs_delivered=63
+e: per-request dispatch snapshots recorded,PASS,request_rows=64 with_snapshot=64
+f: integrity checks,PASS,same logical request has byte-identical prompt and input token count across cells=PASS; same logical request has fixed output token count across cells=PASS; vLLM usage telemetry present for every request=PASS; transient live retries recorded in raw data=PASS

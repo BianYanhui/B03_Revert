@@ -7,7 +7,7 @@ without interference.
 
 | resource | B02 | B03 (here) |
 |---|---|---|
-| docker network | `b02-net` 172.30.0.0/24 | `b03-net` 172.31.0.0/24 |
+| docker network | `b02-net` 172.30.0.0/24 | `b03-net` 172.32.0.0/24 |
 | image | `b02-gw` | `b03-gw` |
 | relay container | `gateway` | `b03-gateway` |
 | iperf3 background server | `bgserver` | `b03-bgserver` |

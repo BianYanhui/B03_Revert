@@ -40,9 +40,9 @@ fi
 cd "$HERE"
 "$PY" run_b03_motivation.py \
   --preset smoke --tag "$SMOKE_TAG" --kv-cache-tokens "$KV" \
-  --out-dir "$HERE/results"
+  --out-dir "$HERE"
 
 # 4. offline counterfactual analysis + replay sanity
-"$PY" analyze_b03.py --run-dir "$HERE/results" --tag "$SMOKE_TAG"
+"$PY" analyze_b03.py --run-dir "$HERE" --tag "$SMOKE_TAG"
 
 echo "B03 smoke complete: tag=$SMOKE_TAG"

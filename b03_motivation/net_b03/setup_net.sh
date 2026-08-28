@@ -5,7 +5,7 @@
 #
 # B03 copy of B02 shared_link_exp/net/setup_net.sh (provenance: B02_LIS
 # c917c25).  Deltas: dedicated names (b03-net / b03-gw / b03-gateway /
-# b03-bgserver), dedicated subnet 172.31.0.0/24, relay published on host port
+# b03-bgserver), dedicated subnet 172.32.0.0/24, relay published on host port
 # 9702, dispatcher endpoint on bridge IP:9703 (tc signaling filter matches
 # dport 9703).  B02's b02-net platform can run at the same time.
 set -euo pipefail
@@ -27,7 +27,7 @@ while (($#)); do
 done
 
 if ! docker network inspect b03-net >/dev/null 2>&1; then
-  docker network create --subnet 172.31.0.0/24 b03-net >/dev/null
+  docker network create --subnet 172.32.0.0/24 b03-net >/dev/null
 fi
 # docker does not report an explicit Gateway when it assigns the first
 # address of the subnet; read it from the host-side bridge interface instead.
