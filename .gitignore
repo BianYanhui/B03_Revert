@@ -1,0 +1,33 @@
+docx/prompt/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Virtualenvs (kept inside B02 for reproducibility)
+.venv/
+venv/
+poc/.venv/
+
+# Logs and local-only run artifacts
+*.log
+poc/**/logs/
+poc/**/cache/
+# experiment runtime artefacts
+experiments/results/**/*.pid
+experiments/results/**/*.log
+experiments/results/**/*.jsonl.tmp
+
+# Oversized raw data exceeding GitHub 100MB per-file limit
+supplemental_20260715/frozen_replay_large/trace_replay_quality.json
+supplemental_20260720/sources/sharegpt_v3.json
+
+# shared-link live run artifacts
+shared_link_exp/server_logs/
+shared_link_exp/live_v1/run.log
+shared_link_exp/live_v2/run.log
+
+# analysis runtime pid files
+analysis/**/*.pid
