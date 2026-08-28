@@ -1043,9 +1043,12 @@ def paired_rows(cells: list[dict]) -> list[dict]:
 
 
 def validate_records(raw: list[dict], output_tokens: int) -> list[dict]:
-    groups: dict[tuple[int, int], list[dict]] = defaultdict(list)
+    # Requests are comparable ONLY within the same workload point: points
+    # differ in alpha/overlap/concurrency and therefore in prompts and
+    # lineage draws by design.
+    groups: dict[tuple[int, str, int], list[dict]] = defaultdict(list)
     for row in raw:
-        groups[(int(row["rep"]), int(row["request_id"]))].append(row)
+        groups[(int(row["rep"]), str(row.get("point_id", "")), int(row["request_id"]))].append(row)
     mismatched_inputs = sum(len({(item["prompt_sha256"], item["input_tokens"]) for item in rows}) != 1 for rows in groups.values())
     mismatched_outputs = sum(len({item["output_tokens"] for item in rows}) != 1 or next(iter({item["output_tokens"] for item in rows})) != output_tokens for rows in groups.values())
     missing_usage = sum(item["input_tokens"] is None or item["output_tokens"] is None for item in raw)

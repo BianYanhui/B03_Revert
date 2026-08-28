@@ -1,0 +1,53 @@
+check,status,detail
+rep0_ov0_agg_static@rho0.8_b03overlap: World-1 replay reproduces every real decision,PASS,replayed=96 matched=96
+rep0_ov0_agg_static@rho0.8_b03overlap: ledger covers exactly the delivered frames,PASS,ledger=111 delivered=111
+rep0_ov0_agg_static@rho0.8_b03overlap: no future information in pre-transmission features,PASS,leaking_rows=0
+rep0_ov0_agg_full@rho0.8_b03overlap: World-1 replay reproduces every real decision,PASS,replayed=96 matched=96
+rep0_ov0_agg_full@rho0.8_b03overlap: ledger covers exactly the delivered frames,PASS,ledger=57 delivered=57
+rep0_ov0_agg_full@rho0.8_b03overlap: no future information in pre-transmission features,PASS,leaking_rows=0
+rep1_ov0_agg_full@rho0.8_b03overlap: World-1 replay reproduces every real decision,PASS,replayed=96 matched=96
+rep1_ov0_agg_full@rho0.8_b03overlap: ledger covers exactly the delivered frames,PASS,ledger=88 delivered=88
+rep1_ov0_agg_full@rho0.8_b03overlap: no future information in pre-transmission features,PASS,leaking_rows=0
+rep1_ov0_agg_static@rho0.8_b03overlap: World-1 replay reproduces every real decision,PASS,replayed=96 matched=96
+rep1_ov0_agg_static@rho0.8_b03overlap: ledger covers exactly the delivered frames,PASS,ledger=89 delivered=89
+rep1_ov0_agg_static@rho0.8_b03overlap: no future information in pre-transmission features,PASS,leaking_rows=0
+rep0_ov25_agg_full@rho0.8_b03overlap: World-1 replay reproduces every real decision,PASS,replayed=96 matched=96
+rep0_ov25_agg_full@rho0.8_b03overlap: ledger covers exactly the delivered frames,PASS,ledger=114 delivered=114
+rep0_ov25_agg_full@rho0.8_b03overlap: no future information in pre-transmission features,PASS,leaking_rows=0
+rep0_ov25_agg_static@rho0.8_b03overlap: World-1 replay reproduces every real decision,PASS,replayed=96 matched=96
+rep0_ov25_agg_static@rho0.8_b03overlap: ledger covers exactly the delivered frames,PASS,ledger=115 delivered=115
+rep0_ov25_agg_static@rho0.8_b03overlap: no future information in pre-transmission features,PASS,leaking_rows=0
+rep1_ov25_agg_full@rho0.8_b03overlap: World-1 replay reproduces every real decision,PASS,replayed=96 matched=96
+rep1_ov25_agg_full@rho0.8_b03overlap: ledger covers exactly the delivered frames,PASS,ledger=126 delivered=126
+rep1_ov25_agg_full@rho0.8_b03overlap: no future information in pre-transmission features,PASS,leaking_rows=0
+rep1_ov25_agg_static@rho0.8_b03overlap: World-1 replay reproduces every real decision,PASS,replayed=96 matched=96
+rep1_ov25_agg_static@rho0.8_b03overlap: ledger covers exactly the delivered frames,PASS,ledger=139 delivered=139
+rep1_ov25_agg_static@rho0.8_b03overlap: no future information in pre-transmission features,PASS,leaking_rows=0
+rep0_ov50_agg_static@rho0.8_b03overlap: World-1 replay reproduces every real decision,PASS,replayed=96 matched=96
+rep0_ov50_agg_static@rho0.8_b03overlap: ledger covers exactly the delivered frames,PASS,ledger=156 delivered=156
+rep0_ov50_agg_static@rho0.8_b03overlap: no future information in pre-transmission features,PASS,leaking_rows=0
+rep0_ov50_agg_full@rho0.8_b03overlap: World-1 replay reproduces every real decision,PASS,replayed=96 matched=96
+rep0_ov50_agg_full@rho0.8_b03overlap: ledger covers exactly the delivered frames,PASS,ledger=125 delivered=125
+rep0_ov50_agg_full@rho0.8_b03overlap: no future information in pre-transmission features,PASS,leaking_rows=0
+rep1_ov50_agg_full@rho0.8_b03overlap: World-1 replay reproduces every real decision,PASS,replayed=96 matched=96
+rep1_ov50_agg_full@rho0.8_b03overlap: ledger covers exactly the delivered frames,PASS,ledger=140 delivered=140
+rep1_ov50_agg_full@rho0.8_b03overlap: no future information in pre-transmission features,PASS,leaking_rows=0
+rep1_ov50_agg_static@rho0.8_b03overlap: World-1 replay reproduces every real decision,PASS,replayed=96 matched=96
+rep1_ov50_agg_static@rho0.8_b03overlap: ledger covers exactly the delivered frames,PASS,ledger=145 delivered=145
+rep1_ov50_agg_static@rho0.8_b03overlap: no future information in pre-transmission features,PASS,leaking_rows=0
+rep0_ov75_agg_full@rho0.8_b03overlap: World-1 replay reproduces every real decision,PASS,replayed=96 matched=96
+rep0_ov75_agg_full@rho0.8_b03overlap: ledger covers exactly the delivered frames,PASS,ledger=192 delivered=192
+rep0_ov75_agg_full@rho0.8_b03overlap: no future information in pre-transmission features,PASS,leaking_rows=0
+rep0_ov75_agg_static@rho0.8_b03overlap: World-1 replay reproduces every real decision,PASS,replayed=96 matched=96
+rep0_ov75_agg_static@rho0.8_b03overlap: ledger covers exactly the delivered frames,PASS,ledger=163 delivered=163
+rep0_ov75_agg_static@rho0.8_b03overlap: no future information in pre-transmission features,PASS,leaking_rows=0
+rep1_ov75_agg_full@rho0.8_b03overlap: World-1 replay reproduces every real decision,PASS,replayed=96 matched=96
+rep1_ov75_agg_full@rho0.8_b03overlap: ledger covers exactly the delivered frames,PASS,ledger=194 delivered=194
+rep1_ov75_agg_full@rho0.8_b03overlap: no future information in pre-transmission features,PASS,leaking_rows=0
+rep1_ov75_agg_static@rho0.8_b03overlap: World-1 replay reproduces every real decision,PASS,replayed=96 matched=96
+rep1_ov75_agg_static@rho0.8_b03overlap: ledger covers exactly the delivered frames,PASS,ledger=163 delivered=163
+rep1_ov75_agg_static@rho0.8_b03overlap: no future information in pre-transmission features,PASS,leaking_rows=0
+run integrity: same logical request has byte-identical prompt and input token count across cells,PASS,0
+run integrity: same logical request has fixed output token count across cells,PASS,0
+run integrity: vLLM usage telemetry present for every request,PASS,0
+run integrity: transient live retries recorded in raw data,PASS,0

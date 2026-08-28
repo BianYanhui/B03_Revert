@@ -20,11 +20,11 @@
   "B_p10_net_gain_ms": 8.24,
   "B_p90_net_gain_ms": 40.96,
   "B_hold": false,
-  "C_top20_share_best_cell": NaN,
-  "C_top20_share_pooled": 0.3640848952995925,
-  "C_hold": false,
-  "D_spearman_age_vs_value": 0.08984666014785157,
-  "D_spearman_covdelta_vs_value": -0.28005655458131384,
+  "C_top20_share_best_cell": 1.0,
+  "C_top20_share_pooled": 0.311654919447641,
+  "C_hold": true,
+  "D_spearman_age_vs_value": -0.16732442249575288,
+  "D_spearman_covdelta_vs_value": 0.16203431340462407,
   "D_hold": true,
   "E_flip_auroc_decision_aware": 0.7095753205128206,
   "E_flip_auroc_freshness_only": 0.5047676282051282,
@@ -34,9 +34,9 @@
   "conditions": {
     "A": true,
     "B": false,
-    "C": false,
+    "C": true,
     "D": true,
     "E": false
   },
-  "verdict": "NOT SUPPORTED"
+  "verdict": "WEAKLY SUPPORTED"
 }

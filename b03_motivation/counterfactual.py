@@ -220,7 +220,16 @@ def evaluate_cell(updates_path: Path, requests_path: Path, j: int, prefill_token
             realized_ttft_ms = to_float(snapshot.get("ttft_ms"))
             realized_cached_tokens = to_float(snapshot.get("vllm_cached_tokens"))
             signaling_cost_ms = (to_float(update.get("signaling_delay_s"), 0.0) or 0.0) * 1000.0
-            oracle_value_ms = estimated_net_gain_ms - (signaling_cost_ms if value_cost_delay_ms else 0.0)
+            # Oracle value = Oracle-B (the dispatcher's own net dispatch
+            # benefit).  The measured signaling delay is recorded alongside
+            # as a net-of-cost variant, but it is NOT subtracted in the
+            # headline value: link-time (seconds of queueing shared by all
+            # updates) and dispatch benefit (tens of ms) are incommensurable
+            # in raw units, and subtracting them would rank updates by their
+            # delivery delay instead of by decision value.  See
+            # EXPERIMENT_DESIGN.md amendment 2.
+            oracle_value_ms = estimated_net_gain_ms
+            oracle_value_net_of_cost_ms = estimated_net_gain_ms - signaling_cost_ms
             horizon_rows.append({
                 **base, "use_index": use_index, "use_request_id": snapshot["request_id"],
                 "use_dispatch_time_unix": snapshot["dispatch_time_unix"],
@@ -238,6 +247,7 @@ def evaluate_cell(updates_path: Path, requests_path: Path, j: int, prefill_token
                 "estimated_net_gain_ms": estimated_net_gain_ms,
                 "signaling_cost_ms": signaling_cost_ms,
                 "oracle_value_ms": oracle_value_ms,
+                "oracle_value_net_of_cost_ms": oracle_value_net_of_cost_ms,
                 "realized_ttft_ms": realized_ttft_ms if realized_ttft_ms is not None else "",
                 "realized_cached_tokens": realized_cached_tokens if realized_cached_tokens is not None else "",
                 "world1_expected_net_ms": snapshot.get("world1_expected_net_ms", ""),
