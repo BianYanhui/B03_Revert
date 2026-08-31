@@ -147,6 +147,11 @@ PRESETS: dict[str, list[dict]] = {
     "full": ([dict(point_id="base", rhos="0.5,0.8,1.0,1.2",
                    policies="agg_static,agg_full", **BASE_POINT)]
              + _ALPHA_UNION + _OVERLAP_UNION + _CONC_UNION),
+    # V2 (value retention): five repetitions on the base workload to give
+    # every headline condition enough evaluable counterfactual updates
+    # (V2 prompt section 10); exact_fifo kept as the transmission reference.
+    "v2core": [dict(point_id="base", rhos="0.5,0.8,1.0,1.2",
+                    policies="exact_fifo,agg_static,agg_full", **BASE_POINT)],
 }
 POLICY_FLAGS = {
     "exact_fifo": dict(merge=0, priority=0, adaptive=0, dedup=0, global_topk=0),
