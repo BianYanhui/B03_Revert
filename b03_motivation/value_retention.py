@@ -48,6 +48,8 @@ import statistics
 from collections import defaultdict
 from pathlib import Path
 
+import numpy as np
+
 from counterfactual import load_csv, to_float
 
 BUDGETS = (0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0)
@@ -119,13 +121,67 @@ SCORES: dict[str, callable] = {
 }
 
 
-def score_for(policy: str, rows: list[dict], values: list[float], seed: int) -> list[float]:
+def fit_logistic(x: "np.ndarray", y: "np.ndarray", l2: float = 1e-2, iters: int = 1500, lr: float = 0.3) -> "np.ndarray":
+    n, d = x.shape
+    x = np.concatenate([np.ones((n, 1)), x], axis=1)
+    w = np.zeros(d + 1)
+    for _ in range(iters):
+        p = 1.0 / (1.0 + np.exp(-np.clip(x @ w, -30, 30)))
+        w -= lr * (x.T @ (p - y) / n + l2 * np.concatenate([[0.0], w[1:]]))
+    return w
+
+
+def learned_features(row: dict) -> list[float]:
+    """Pre-transmission observable features for the auxiliary learned score."""
+    loads = parse_loads(row.get("dispatcher_loads", ""))
+    instance = int(row.get("instance", 0) or 0)
+    load_gap = max(0, loads[min(instance, len(loads) - 1)] - min(loads)) if loads else 0.0
+    return [
+        num(row, "coverage_after"),
+        num(row, "coverage_after") - num(row, "best_visible_cov"),
+        num(row, "replica_visible_count"),
+        load_gap,
+        num(row, "digest_req_count_recent"),
+        num(row, "in_flight_frames"),
+        num(row, "ewma_delivery_delay_s"),
+        0.0 if row.get("update_age_s", "") == "" else min(feature_age(row), 120.0),
+        1.0 if row.get("update_age_s", "") == "" else 0.0,
+        num(row, "visible_cov_gap"),
+        num(row, "supersedes_in_flight"),
+        1.0 if row.get("update_kind") == "tombstone" else 0.0,
+    ]
+
+
+def score_for(policy: str, rows: list[dict], values: list[float], seed: int,
+              learned_model=None) -> list[float]:
     """Score every candidate under `policy`; higher score = transmit first."""
     if policy == "Oracle":
         return list(values)
     if policy == "Random":
         rng = random.Random(seed)
         return [rng.random() for _ in rows]
+    if policy == "FirstLook":
+        # simple interpretable rule motivated by the V1/V2 mechanism:
+        # first advertisements of a pair (no source history) on instances
+        # whose digest is not yet visible anywhere rank first; within that
+        # group, larger coverage-vs-view wins.  Tombstones keep priority.
+        def firstlook(row: dict) -> float:
+            first_pair = 1.0 if row.get("update_age_s", "") == "" else 0.0
+            first_look = 1.0 if num(row, "replica_visible_count") == 0 else 0.0
+            return 4.0 * first_pair + 2.0 * first_look + feature_cov_advantage(row) / 200.0 \
+                + (float("inf") if row.get("update_kind") == "tombstone" else 0.0)
+        return [firstlook(row) for row in rows]
+    if policy == "LearnedLogistic":
+        # auxiliary (V2 prompt section 15): logistic regression trained
+        # leave-one-rep-out on the SAME run's counterfactual labels
+        # (label = positive next-use value); NOT deployable online without
+        # training, reported as the learned linear reference.
+        import numpy as np
+        assert learned_model is not None
+        w, mu, sd = learned_model
+        x = np.array([learned_features(row) for row in rows])
+        x = (x - mu) / sd
+        return list(1.0 / (1.0 + np.exp(-np.clip(x @ w[1:] + w[0], -30, 30))))
     if policy == "B02Utility":
         # B02 semantics: tombstones always pass first (priority lane);
         # upserts are ranked by the relay's frozen utility formula.
@@ -189,14 +245,16 @@ def load_cells(run_dir: Path, tags: list[str], policies: set[str] | None = None)
         for row in ledger:
             outcome = outcomes.get((cell["point_id"], cell["cell_id"], str(cell["rep"]), row.get("seq", "")))
             record = dict(row)
-            record["evaluated"] = 1 if outcome else 0
-            v_next = to_float(outcome.get("estimated_net_gain_ms")) if outcome else None
-            v_h4 = to_float(outcome.get("cumulative_value_h4")) if outcome else None
-            flip = to_float(outcome.get("decision_flip")) if outcome else None
+            has_outcome = outcome is not None
+            was_evaluated = has_outcome and str(outcome.get("evaluated")) == "1"
+            record["evaluated"] = 1 if was_evaluated else 0
+            v_next = to_float(outcome.get("estimated_net_gain_ms")) if was_evaluated else None
+            v_h4 = to_float(outcome.get("cumulative_value_h4")) if was_evaluated else None
+            flip = to_float(outcome.get("decision_flip")) if was_evaluated else None
             record["v_next"] = v_next
             record["v_h4"] = v_h4
             record["flip"] = int(flip) if flip is not None else None
-            record["superseded"] = to_float(outcome.get("superseded_before_use"), 0.0) if outcome else None
+            record["superseded"] = to_float(outcome.get("superseded_before_use"), 0.0) if was_evaluated else None
             rows.append(record)
             if v_next is not None:
                 values_next.append(v_next)
@@ -230,7 +288,7 @@ VALUE_KEYS = {"next_use": "v_next", "horizon_h4": "v_h4"}
 
 
 def cell_curves(cell: dict, value_key: str, selection_policies: list[str],
-                budgets: tuple[float, ...] = BUDGETS) -> list[dict]:
+                budgets: tuple[float, ...] = BUDGETS, learned_model=None) -> list[dict]:
     rows = [row for row in cell["rows"] if row.get(value_key) is not None]
     if len(rows) < 5:
         return []
@@ -249,7 +307,7 @@ def cell_curves(cell: dict, value_key: str, selection_policies: list[str],
                                 "value_retention": statistics.mean(per_seed),
                                 "seeds": len(per_seed)})
         else:
-            scores = score_for(policy, rows, values, 0)
+            scores = score_for(policy, rows, values, 0, learned_model)
             for beta in budgets:
                 value, _, _ = retention(values, scores, beta)
                 if value == value:
@@ -275,7 +333,28 @@ def analyze(run_dir: Path, tags: list[str], out_tag: str, scope_policies: set[st
             include_exact_fifo_headline: bool = False) -> dict:
     cells = load_cells(run_dir, tags, scope_policies)
     selection_policies = ["Random", "Freshness", "CoverageDelta", "CoverageAdvantage",
-                          "SimpleCoverageLoad", "DecisionAware", "B02Utility", "Oracle"]
+                          "SimpleCoverageLoad", "FirstLook", "DecisionAware", "B02Utility",
+                          "LearnedLogistic", "Oracle"]
+    # LORO logistic models for the auxiliary learned reference: for each rep,
+    # train on the union of the OTHER reps' evaluated rows (label = positive
+    # next-use value).
+    learned_models: dict[str, dict] = {}
+    try:
+        import numpy as _np
+        all_rows = [(cell["rep"], row) for cell in cells.values() for row in cell["rows"]
+                    if row.get("v_next") is not None]
+        for rep in sorted({str(r) for r, _ in all_rows}):
+            train = [row for r, row in all_rows if str(r) != rep]
+            test_hint = [row for r, row in all_rows if str(r) == rep]
+            if len(train) < 50 or not test_hint:
+                continue
+            x = _np.array([learned_features(row) for row in train])
+            mu, sd = x.mean(0), x.std(0)
+            sd[sd == 0] = 1.0
+            y = _np.array([1.0 if (row.get("v_next") or 0.0) > 1.0 else 0.0 for row in train])
+            learned_models[rep] = (fit_logistic((x - mu) / sd, y), mu, sd)
+    except Exception as exc:  # pragma: no cover
+        print(f"learned-logistic reference unavailable: {exc!r}")
     results = run_dir / "results"
     out_dir = results / "aggregates"
     fig_dir = results / "figures"
@@ -311,8 +390,9 @@ def analyze(run_dir: Path, tags: list[str], out_tag: str, scope_policies: set[st
     per_cell_curves: dict[tuple, dict[float, float]] = defaultdict(dict)
     cell_meta: dict[tuple, dict] = {}
     for key, cell in cells.items():
+        model = learned_models.get(str(cell["rep"]))
         for value_name, value_key in VALUE_KEYS.items():
-            for entry in cell_curves(cell, value_key, selection_policies):
+            for entry in cell_curves(cell, value_key, selection_policies, learned_model=model):
                 row = {"tag": cell["tag"], "point_id": cell["point_id"],
                        "cell_id": cell["cell_id"], "cell_tag": cell["cell_tag"],
                        "rep": cell["rep"], "policy": cell["policy"], "rho": cell["rho"],
@@ -357,6 +437,17 @@ def analyze(run_dir: Path, tags: list[str], out_tag: str, scope_policies: set[st
     curves_next = aggregated("next_use", headline_scope)
     curves_h4 = aggregated("horizon_h4", headline_scope)
     curves_next_all = aggregated("next_use", None)
+    # per-rho aggregation for the robustness figure (same equal-cell weight)
+    by_rho_groups: dict[tuple, list[dict]] = defaultdict(list)
+    for row in retention_rows:
+        if row["value_definition"] == "next_use" and row["policy"] in headline_scope \
+                and abs(row["budget_fraction"] - 0.2) < 1e-9:
+            by_rho_groups[(row["selection_policy"], str(row["rho"]))].append(row)
+    curves_by_rho = [
+        {"selection_policy": policy, "rho": rho, "budget_fraction": 0.2,
+         "value_retention_mean": statistics.mean(r["value_retention"] for r in rows_)}
+        for (policy, rho), rows_ in sorted(by_rho_groups.items(), key=lambda kv: float(kv[0][1]))
+    ]
     write_csv(out_dir / f"value_retention_{out_tag}.csv",
               [dict(row, value_definition="next_use") for row in curves_next]
               + [dict(row, value_definition="horizon_h4") for row in curves_h4]
@@ -416,7 +507,7 @@ def analyze(run_dir: Path, tags: list[str], out_tag: str, scope_policies: set[st
     }
     (out_dir / f"v2_report_numbers_{out_tag}.json").write_text(json.dumps(numbers, indent=2, default=str))
 
-    figures(fig_dir, out_tag, curves_next, curves_h4, fate_summary, gap_rows, curves_next if False else None)
+    figures(fig_dir, out_tag, curves_next, curves_h4, fate_summary, gap_rows, curves_by_rho)
     return numbers
 
 
@@ -433,7 +524,7 @@ def write_csv(path: Path, rows: list[dict]) -> None:
         writer.writerows(rows)
 
 
-def figures(fig_dir: Path, out_tag: str, curves_next, curves_h4, fate_summary, gap_rows, _) -> None:
+def figures(fig_dir: Path, out_tag: str, curves_next, curves_h4, fate_summary, gap_rows, curves_by_rho) -> None:
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -442,14 +533,15 @@ def figures(fig_dir: Path, out_tag: str, curves_next, curves_h4, fate_summary, g
     colors = {
         "Random": "#b0b0b0", "Freshness": "#c98b2e", "CoverageDelta": "#6aa84f",
         "CoverageAdvantage": "#38761d", "SimpleCoverageLoad": "#1155cc",
-        "DecisionAware": "#741b47", "B02Utility": "#85200c", "Oracle": "#000000",
+        "FirstLook": "#674ea7", "DecisionAware": "#741b47", "B02Utility": "#85200c",
+        "LearnedLogistic": "#0b5394", "Oracle": "#000000",
     }
-    styles = {"Oracle": "--", "B02Utility": "-.", "DecisionAware": "-"}
+    styles = {"Oracle": "--", "B02Utility": "-.", "DecisionAware": "-", "LearnedLogistic": ":", "FirstLook": "-"}
 
     # Figure A — headline: retention vs budget
     fig, ax = plt.subplots(figsize=(6.8, 4.6))
-    for policy in ("Oracle", "DecisionAware", "B02Utility", "SimpleCoverageLoad",
-                   "CoverageAdvantage", "CoverageDelta", "Freshness", "Random"):
+    for policy in ("Oracle", "LearnedLogistic", "FirstLook", "DecisionAware", "B02Utility",
+                   "SimpleCoverageLoad", "CoverageAdvantage", "CoverageDelta", "Freshness", "Random"):
         points = sorted((row["budget_fraction"], row["value_retention_mean"],
                          row.get("ci95_low"), row.get("ci95_high"))
                         for row in curves_next if row["selection_policy"] == policy)
@@ -459,7 +551,7 @@ def figures(fig_dir: Path, out_tag: str, curves_next, curves_h4, fate_summary, g
         ys = [p[1] * 100 for p in points]
         ax.plot(xs, ys, label=policy, color=colors.get(policy), ls=styles.get(policy, "-"),
                 lw=2.2 if policy == "Oracle" else 1.6, marker="o", ms=3.5)
-        if policy in ("Oracle", "DecisionAware", "B02Utility", "CoverageAdvantage"):
+        if policy in ("Oracle", "LearnedLogistic", "DecisionAware", "B02Utility", "CoverageAdvantage"):
             lows = [p[2] * 100 if p[2] == p[2] else p[1] * 100 for p in points]
             highs = [p[3] * 100 if p[3] == p[3] else p[1] * 100 for p in points]
             ax.fill_between(xs, lows, highs, color=colors.get(policy), alpha=0.12)
@@ -520,7 +612,7 @@ def figures(fig_dir: Path, out_tag: str, curves_next, curves_h4, fate_summary, g
         fig, ax = plt.subplots(figsize=(7.2, 4.2))
         budgets = sorted({round(row["budget_fraction"], 3) for row in fixed})
         policies_order = ["Freshness", "Random", "CoverageDelta", "CoverageAdvantage",
-                          "SimpleCoverageLoad", "B02Utility", "DecisionAware"]
+                          "SimpleCoverageLoad", "FirstLook", "B02Utility", "DecisionAware", "LearnedLogistic"]
         width = 0.8 / max(1, len(policies_order))
         for index, policy in enumerate(policies_order):
             offsets = (range(len(budgets)))
@@ -541,8 +633,8 @@ def figures(fig_dir: Path, out_tag: str, curves_next, curves_h4, fate_summary, g
         plt.close(fig)
 
     # Figure D — robustness: retention@20% vs rho
-    by_rho: dict[tuple, list[tuple[float, float]]] = defaultdict(list)
-    for row in curves_next:
+    by_rho: dict[str, list[tuple[float, float]]] = defaultdict(list)
+    for row in curves_by_rho or []:
         if abs(row["budget_fraction"] - 0.2) < 1e-9:
             by_rho[row["selection_policy"]].append((float(row["rho"]), row["value_retention_mean"] * 100))
     if by_rho:

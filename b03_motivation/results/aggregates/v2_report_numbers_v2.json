@@ -1,0 +1,34 @@
+{
+  "decision_aware_formula": "S(u) = max(0, coverage_advantage)/50        [prefill-ms vs best visible]  -  2*max(0, load_gap)                     [queue-penalty-ms vs least-loaded]  +  0.3*min(digest_req_count_recent, 10)   [expected near-term uses]  -  min(update_age_s, 60)/60               [stale re-advertisements]  -  4*(replica_visible_count >= 1)         [replica ads rarely flip decisions]  +  2*(update_age_s missing)               [first advertisement of a pair]   ; weights are small integers fixed a priori from the mechanism (V1 exploration); the V2 5-repetition live data is the held-out test",
+  "b02_utility_reconstruction": "exp(-(age+Dq)/30.0)*coverage_after - 16.0*64; tombstones first (B02 priority lane)",
+  "random_seeds": 20,
+  "bootstrap_draws": 2000,
+  "cells": 60,
+  "sanity": [
+    {
+      "check": "beta=100% retention == 100% for every policy",
+      "status": "PASS",
+      "detail": "10 policies at beta=1; offenders=0"
+    },
+    {
+      "check": "oracle never below any policy at equal budget",
+      "status": "PASS",
+      "detail": "violations=[]"
+    },
+    {
+      "check": "random retention grows with budget",
+      "status": "PASS",
+      "detail": "random curve=[(0.1, 0.101), (0.2, 0.198), (0.3, 0.298), (0.4, 0.396), (0.5, 0.501), (0.6, 0.603), (0.8, 0.8), (1.0, 1.0)]"
+    },
+    {
+      "check": "identical candidate population per cell across policies",
+      "status": "PASS",
+      "detail": "cells=52 inconsistent=0"
+    },
+    {
+      "check": "counterfactual labels fixed (retention computed offline on frozen records)",
+      "status": "PASS",
+      "detail": "retention reuses V1 counterfactual outcomes; no live state touched"
+    }
+  ]
+}

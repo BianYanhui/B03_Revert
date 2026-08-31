@@ -1,0 +1,185 @@
+check,status,detail
+rep0_base_exact_fifo@rho1.0_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep0_base_exact_fifo@rho1.0_b03v2: ledger covers exactly the delivered frames,PASS,ledger=92 delivered=92
+rep0_base_exact_fifo@rho1.0_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep0_base_agg_full@rho1.2_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep0_base_agg_full@rho1.2_b03v2: ledger covers exactly the delivered frames,PASS,ledger=44 delivered=44
+rep0_base_agg_full@rho1.2_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep0_base_exact_fifo@rho0.8_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep0_base_exact_fifo@rho0.8_b03v2: ledger covers exactly the delivered frames,PASS,ledger=79 delivered=79
+rep0_base_exact_fifo@rho0.8_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep0_base_exact_fifo@rho1.2_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep0_base_exact_fifo@rho1.2_b03v2: ledger covers exactly the delivered frames,PASS,ledger=25 delivered=25
+rep0_base_exact_fifo@rho1.2_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep0_base_agg_full@rho1.0_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep0_base_agg_full@rho1.0_b03v2: ledger covers exactly the delivered frames,PASS,ledger=18 delivered=18
+rep0_base_agg_full@rho1.0_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep0_base_agg_static@rho1.2_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep0_base_agg_static@rho1.2_b03v2: ledger covers exactly the delivered frames,PASS,ledger=10 delivered=10
+rep0_base_agg_static@rho1.2_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep0_base_agg_static@rho0.8_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep0_base_agg_static@rho0.8_b03v2: ledger covers exactly the delivered frames,PASS,ledger=25 delivered=25
+rep0_base_agg_static@rho0.8_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep0_base_agg_static@rho1.0_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep0_base_agg_static@rho1.0_b03v2: ledger covers exactly the delivered frames,PASS,ledger=10 delivered=10
+rep0_base_agg_static@rho1.0_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep0_base_agg_full@rho0.5_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep0_base_agg_full@rho0.5_b03v2: ledger covers exactly the delivered frames,PASS,ledger=64 delivered=64
+rep0_base_agg_full@rho0.5_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep0_base_agg_static@rho0.5_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep0_base_agg_static@rho0.5_b03v2: ledger covers exactly the delivered frames,PASS,ledger=185 delivered=185
+rep0_base_agg_static@rho0.5_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep0_base_exact_fifo@rho0.5_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep0_base_exact_fifo@rho0.5_b03v2: ledger covers exactly the delivered frames,PASS,ledger=192 delivered=192
+rep0_base_exact_fifo@rho0.5_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep0_base_agg_full@rho0.8_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep0_base_agg_full@rho0.8_b03v2: ledger covers exactly the delivered frames,PASS,ledger=138 delivered=138
+rep0_base_agg_full@rho0.8_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep1_base_exact_fifo@rho1.2_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep1_base_exact_fifo@rho1.2_b03v2: ledger covers exactly the delivered frames,PASS,ledger=56 delivered=56
+rep1_base_exact_fifo@rho1.2_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep1_base_agg_static@rho0.5_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep1_base_agg_static@rho0.5_b03v2: ledger covers exactly the delivered frames,PASS,ledger=182 delivered=182
+rep1_base_agg_static@rho0.5_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep1_base_exact_fifo@rho0.5_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep1_base_exact_fifo@rho0.5_b03v2: ledger covers exactly the delivered frames,PASS,ledger=192 delivered=192
+rep1_base_exact_fifo@rho0.5_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep1_base_agg_static@rho0.8_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep1_base_agg_static@rho0.8_b03v2: ledger covers exactly the delivered frames,PASS,ledger=163 delivered=163
+rep1_base_agg_static@rho0.8_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep1_base_agg_static@rho1.0_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep1_base_agg_static@rho1.0_b03v2: ledger covers exactly the delivered frames,PASS,ledger=117 delivered=117
+rep1_base_agg_static@rho1.0_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep1_base_exact_fifo@rho0.8_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep1_base_exact_fifo@rho0.8_b03v2: ledger covers exactly the delivered frames,PASS,ledger=192 delivered=192
+rep1_base_exact_fifo@rho0.8_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep1_base_agg_full@rho1.2_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep1_base_agg_full@rho1.2_b03v2: ledger covers exactly the delivered frames,PASS,ledger=99 delivered=99
+rep1_base_agg_full@rho1.2_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep1_base_agg_full@rho0.8_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep1_base_agg_full@rho0.8_b03v2: ledger covers exactly the delivered frames,PASS,ledger=114 delivered=114
+rep1_base_agg_full@rho0.8_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep1_base_agg_full@rho1.0_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep1_base_agg_full@rho1.0_b03v2: ledger covers exactly the delivered frames,PASS,ledger=128 delivered=128
+rep1_base_agg_full@rho1.0_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep1_base_agg_full@rho0.5_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep1_base_agg_full@rho0.5_b03v2: ledger covers exactly the delivered frames,PASS,ledger=181 delivered=181
+rep1_base_agg_full@rho0.5_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep1_base_agg_static@rho1.2_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep1_base_agg_static@rho1.2_b03v2: ledger covers exactly the delivered frames,PASS,ledger=114 delivered=114
+rep1_base_agg_static@rho1.2_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep1_base_exact_fifo@rho1.0_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep1_base_exact_fifo@rho1.0_b03v2: ledger covers exactly the delivered frames,PASS,ledger=117 delivered=117
+rep1_base_exact_fifo@rho1.0_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep2_base_agg_full@rho0.5_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep2_base_agg_full@rho0.5_b03v2: ledger covers exactly the delivered frames,PASS,ledger=190 delivered=190
+rep2_base_agg_full@rho0.5_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep2_base_agg_full@rho0.8_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep2_base_agg_full@rho0.8_b03v2: ledger covers exactly the delivered frames,PASS,ledger=192 delivered=192
+rep2_base_agg_full@rho0.8_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep2_base_exact_fifo@rho1.2_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep2_base_exact_fifo@rho1.2_b03v2: ledger covers exactly the delivered frames,PASS,ledger=136 delivered=136
+rep2_base_exact_fifo@rho1.2_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep2_base_exact_fifo@rho1.0_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep2_base_exact_fifo@rho1.0_b03v2: ledger covers exactly the delivered frames,PASS,ledger=170 delivered=170
+rep2_base_exact_fifo@rho1.0_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep2_base_agg_static@rho1.0_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep2_base_agg_static@rho1.0_b03v2: ledger covers exactly the delivered frames,PASS,ledger=180 delivered=180
+rep2_base_agg_static@rho1.0_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep2_base_exact_fifo@rho0.8_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep2_base_exact_fifo@rho0.8_b03v2: ledger covers exactly the delivered frames,PASS,ledger=192 delivered=192
+rep2_base_exact_fifo@rho0.8_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep2_base_agg_full@rho1.2_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep2_base_agg_full@rho1.2_b03v2: ledger covers exactly the delivered frames,PASS,ledger=75 delivered=75
+rep2_base_agg_full@rho1.2_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep2_base_agg_static@rho0.8_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep2_base_agg_static@rho0.8_b03v2: ledger covers exactly the delivered frames,PASS,ledger=137 delivered=137
+rep2_base_agg_static@rho0.8_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep2_base_exact_fifo@rho0.5_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep2_base_exact_fifo@rho0.5_b03v2: ledger covers exactly the delivered frames,PASS,ledger=192 delivered=192
+rep2_base_exact_fifo@rho0.5_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep2_base_agg_static@rho1.2_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep2_base_agg_static@rho1.2_b03v2: ledger covers exactly the delivered frames,PASS,ledger=110 delivered=110
+rep2_base_agg_static@rho1.2_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep2_base_agg_full@rho1.0_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep2_base_agg_full@rho1.0_b03v2: ledger covers exactly the delivered frames,PASS,ledger=40 delivered=40
+rep2_base_agg_full@rho1.0_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep2_base_agg_static@rho0.5_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep2_base_agg_static@rho0.5_b03v2: ledger covers exactly the delivered frames,PASS,ledger=189 delivered=189
+rep2_base_agg_static@rho0.5_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep3_base_agg_static@rho0.5_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep3_base_agg_static@rho0.5_b03v2: ledger covers exactly the delivered frames,PASS,ledger=192 delivered=192
+rep3_base_agg_static@rho0.5_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep3_base_exact_fifo@rho1.2_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep3_base_exact_fifo@rho1.2_b03v2: ledger covers exactly the delivered frames,PASS,ledger=103 delivered=103
+rep3_base_exact_fifo@rho1.2_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep3_base_exact_fifo@rho0.5_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep3_base_exact_fifo@rho0.5_b03v2: ledger covers exactly the delivered frames,PASS,ledger=192 delivered=192
+rep3_base_exact_fifo@rho0.5_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep3_base_agg_full@rho0.5_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep3_base_agg_full@rho0.5_b03v2: ledger covers exactly the delivered frames,PASS,ledger=192 delivered=192
+rep3_base_agg_full@rho0.5_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep3_base_agg_static@rho1.2_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep3_base_agg_static@rho1.2_b03v2: ledger covers exactly the delivered frames,PASS,ledger=109 delivered=109
+rep3_base_agg_static@rho1.2_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep3_base_agg_full@rho1.0_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep3_base_agg_full@rho1.0_b03v2: ledger covers exactly the delivered frames,PASS,ledger=57 delivered=57
+rep3_base_agg_full@rho1.0_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep3_base_agg_static@rho0.8_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep3_base_agg_static@rho0.8_b03v2: ledger covers exactly the delivered frames,PASS,ledger=150 delivered=150
+rep3_base_agg_static@rho0.8_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep3_base_exact_fifo@rho1.0_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep3_base_exact_fifo@rho1.0_b03v2: ledger covers exactly the delivered frames,PASS,ledger=117 delivered=117
+rep3_base_exact_fifo@rho1.0_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep3_base_agg_full@rho1.2_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep3_base_agg_full@rho1.2_b03v2: ledger covers exactly the delivered frames,PASS,ledger=48 delivered=48
+rep3_base_agg_full@rho1.2_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep3_base_exact_fifo@rho0.8_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep3_base_exact_fifo@rho0.8_b03v2: ledger covers exactly the delivered frames,PASS,ledger=183 delivered=183
+rep3_base_exact_fifo@rho0.8_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep3_base_agg_static@rho1.0_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep3_base_agg_static@rho1.0_b03v2: ledger covers exactly the delivered frames,PASS,ledger=131 delivered=131
+rep3_base_agg_static@rho1.0_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep3_base_agg_full@rho0.8_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep3_base_agg_full@rho0.8_b03v2: ledger covers exactly the delivered frames,PASS,ledger=160 delivered=160
+rep3_base_agg_full@rho0.8_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep4_base_agg_full@rho1.2_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep4_base_agg_full@rho1.2_b03v2: ledger covers exactly the delivered frames,PASS,ledger=65 delivered=65
+rep4_base_agg_full@rho1.2_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep4_base_agg_static@rho1.2_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep4_base_agg_static@rho1.2_b03v2: ledger covers exactly the delivered frames,PASS,ledger=115 delivered=115
+rep4_base_agg_static@rho1.2_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep4_base_agg_full@rho0.8_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep4_base_agg_full@rho0.8_b03v2: ledger covers exactly the delivered frames,PASS,ledger=69 delivered=69
+rep4_base_agg_full@rho0.8_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep4_base_agg_static@rho0.8_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep4_base_agg_static@rho0.8_b03v2: ledger covers exactly the delivered frames,PASS,ledger=117 delivered=117
+rep4_base_agg_static@rho0.8_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep4_base_agg_static@rho1.0_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep4_base_agg_static@rho1.0_b03v2: ledger covers exactly the delivered frames,PASS,ledger=64 delivered=64
+rep4_base_agg_static@rho1.0_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep4_base_exact_fifo@rho1.0_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep4_base_exact_fifo@rho1.0_b03v2: ledger covers exactly the delivered frames,PASS,ledger=48 delivered=48
+rep4_base_exact_fifo@rho1.0_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep4_base_exact_fifo@rho0.5_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep4_base_exact_fifo@rho0.5_b03v2: ledger covers exactly the delivered frames,PASS,ledger=192 delivered=192
+rep4_base_exact_fifo@rho0.5_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep4_base_exact_fifo@rho0.8_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep4_base_exact_fifo@rho0.8_b03v2: ledger covers exactly the delivered frames,PASS,ledger=148 delivered=148
+rep4_base_exact_fifo@rho0.8_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep4_base_agg_full@rho1.0_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep4_base_agg_full@rho1.0_b03v2: ledger covers exactly the delivered frames,PASS,ledger=58 delivered=58
+rep4_base_agg_full@rho1.0_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep4_base_agg_full@rho0.5_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep4_base_agg_full@rho0.5_b03v2: ledger covers exactly the delivered frames,PASS,ledger=192 delivered=192
+rep4_base_agg_full@rho0.5_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep4_base_exact_fifo@rho1.2_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep4_base_exact_fifo@rho1.2_b03v2: ledger covers exactly the delivered frames,PASS,ledger=107 delivered=107
+rep4_base_exact_fifo@rho1.2_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+rep4_base_agg_static@rho0.5_b03v2: World-1 replay reproduces every real decision,PASS,replayed=160 matched=160
+rep4_base_agg_static@rho0.5_b03v2: ledger covers exactly the delivered frames,PASS,ledger=145 delivered=145
+rep4_base_agg_static@rho0.5_b03v2: no future information in pre-transmission features,PASS,leaking_rows=0
+run integrity: same logical request has byte-identical prompt and input token count across cells,PASS,0
+run integrity: same logical request has fixed output token count across cells,PASS,0
+run integrity: vLLM usage telemetry present for every request,PASS,0
+run integrity: transient live retries recorded in raw data,PASS,2
