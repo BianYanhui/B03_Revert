@@ -423,16 +423,20 @@ class PathRuntime:
             return partial
         return dict(self.last_stats or {})
 
-    async def send_event(self, kind: int, worker: int, cell: int, seq: int, coverage: int, digest: int, generated_at: float) -> None:
+    async def send_event(self, kind: int, worker: int, cell: int, seq: int, coverage: int, digest: int, generated_at: float, freq: int = 0) -> None:
         assert self.agent is not None
         async with self._write_lock:
-            self.agent.write(frame(kind, worker, cell, seq, coverage, digest, generated_at))
+            self.agent.write(frame(kind, worker, cell, seq, coverage, digest, generated_at, freq=freq))
 
-    async def send_foreground(self, kind: int, worker: int, cell: int, seq: int, coverage: int, digest: int, generated_at: float) -> None:
-        """Request-path updates. A separate TCP connection so a full background window cannot block them."""
+    async def send_foreground(self, kind: int, worker: int, cell: int, seq: int, coverage: int, digest: int, generated_at: float, freq: int = 0) -> None:
+        """Request-path updates. A separate TCP connection so a full background window cannot block them.
+
+        `freq` is how many times this worker has already served this prefix in
+        this cell, which is what MODE_FREQ ranks by. Only K_UP uses it.
+        """
         assert self.fg_agent is not None
         async with self._fg_lock:
-            self.fg_agent.write(frame(kind, worker, cell, seq, coverage, digest, generated_at))
+            self.fg_agent.write(frame(kind, worker, cell, seq, coverage, digest, generated_at, freq=freq))
             await self.fg_agent.drain()
 
     async def drain_agent(self) -> None:
