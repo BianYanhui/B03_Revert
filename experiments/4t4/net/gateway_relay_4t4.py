@@ -87,6 +87,11 @@ import time
 from collections import Counter, OrderedDict, deque
 
 FRAME = 64
+# A K_UP may carry how many times its sender has already served this prefix in
+# this cell. Rides in payload bytes that every frame already reserves, so the
+# wire length stays 64. Only MODE_FREQ reads it.
+FREQ = struct.Struct(">I")
+FREQ_MAX = 0xFFFF
 # e2e background replay sends worker_id + 16. Routing only considers 0-3,
 # so those frames must not take a replica-cap slot away from a real worker.
 BACKGROUND_INSTANCE = 16
@@ -96,15 +101,23 @@ STATS = struct.Struct(">IIIIIIII")
 K_UP, K_TOMB, K_RESET, K_STATS_REQ, K_CONFIG, K_ACK, K_STATS, K_RESET_DONE, K_STATS2 = 1, 2, 3, 4, 5, 6, 7, 8, 9
 STATS2 = struct.Struct(">IIIIIIII")
 RECENT_KEEP = 4096
-MODE_FULLSYNC, MODE_RATEFIFO, MODE_LATEST, MODE_AGECOV, MODE_STATIC, MODE_ADAPTIVE, MODE_BOUNDED = range(7)
+MODE_FULLSYNC, MODE_RATEFIFO, MODE_LATEST, MODE_AGECOV, MODE_STATIC, MODE_ADAPTIVE, MODE_BOUNDED, MODE_FREQ = range(8)
 MODE_NAMES = {
     MODE_FULLSYNC: "FullSync", MODE_RATEFIFO: "RateFIFO", MODE_LATEST: "LatestOnly",
     MODE_AGECOV: "AgeCov-Greedy", MODE_STATIC: "StaticSemantic", MODE_ADAPTIVE: "Adaptive",
-    MODE_BOUNDED: "BoundedFIFO",
+    MODE_BOUNDED: "BoundedFIFO", MODE_FREQ: "StaticTopKFreq",
 }
 
 
-def frame(kind: int, instance: int, cell: int, seq: int, coverage: int, digest: int, t: float, payload: bytes = b"") -> bytes:
+def frame(kind: int, instance: int, cell: int, seq: int, coverage: int, digest: int, t: float, payload: bytes = b"", freq: int = 0) -> bytes:
+    """One 64-byte frame. `freq` occupies the first four payload bytes.
+
+    Mirrors experiments.icc_kv.wire.frame. A zero frequency means the sender is
+    not claiming one, and admission reads that as 1, so an old sender that never
+    sets the field is admitted exactly as it was before this existed.
+    """
+    if freq:
+        payload = FREQ.pack(min(int(freq), FREQ_MAX)) + payload[:28]
     return HDR.pack(kind, instance, cell, seq, coverage, digest, t) + payload.ljust(32, b"\x00")[:32]
 
 
@@ -448,6 +461,8 @@ class Relay:
         cell = self.current_cell
         self.received += 1
         score = self.score(coverage, t_send) if self.agecov else None
+        # Only a K_UP carries a frequency claim, and only MODE_FREQ acts on it.
+        freq = FREQ.unpack(data[32:36])[0] if (kind == K_UP and self.mode == MODE_FREQ) else 0
         if not self.consume_rate_token():
             self.drops["rate_limit"] += 1
             self.emit_update("suppressed", kind, instance, cell, seq, coverage, digest, t_send,
@@ -466,7 +481,7 @@ class Relay:
                 self.emit_update("suppressed", kind, instance, cell, seq, coverage, digest, t_send,
                                  selected=False, reason="low_utility")
                 return
-            if self._topk_drop_new(coverage, digest):
+            if self._topk_drop_new(self._topk_score(coverage, freq), digest):
                 self.drops["global_topk"] += 1
                 self.emit_update("suppressed", kind, instance, cell, seq, coverage, digest, t_send,
                                  selected=False, reason="global_topk")
@@ -487,7 +502,7 @@ class Relay:
             if kind == K_UP:
                 self.queued_up[(instance, digest)] = data
             if kind == K_UP:
-                self._topk_add(digest, coverage)
+                self._topk_add(digest, self._topk_score(coverage, freq))
         self.emit_update("enqueued", kind, instance, cell, seq, coverage, digest, t_send,
                          selected=True, score=score)
         if kind == K_UP and self.global_topk:
@@ -495,12 +510,25 @@ class Relay:
         self.maxq = max(self.maxq, self.live_depth())
         self.queue_event.set()
 
-    def _topk_add(self, digest: int, coverage: int) -> None:
+    def _topk_score(self, coverage: int, freq: int) -> int:
+        """Admission rank for a K_UP.
+
+        MODE_FREQ multiplies coverage by how many times the sender has already
+        served the prefix. Every other mode keeps the historical coverage-only
+        rank, so nothing that does not opt in changes behaviour. A zero or
+        missing frequency reads as 1 rather than 0, so an old sender scores
+        exactly what it scored before.
+        """
+        if self.mode == MODE_FREQ:
+            return coverage * max(1, int(freq))
+        return coverage
+
+    def _topk_add(self, digest: int, score: int) -> None:
         if not self.global_topk:
             return
         self.topk_refs[digest] = self.topk_refs.get(digest, 0) + 1
-        if coverage > self.topk_best.get(digest, -1):
-            self.topk_best[digest] = coverage
+        if score > self.topk_best.get(digest, -1):
+            self.topk_best[digest] = score
 
     def _topk_release(self, digest: int) -> None:
         """One live queued upsert for this digest left the queue."""
@@ -523,27 +551,33 @@ class Relay:
     def _topk_worst(self) -> tuple[int, int] | None:
         if not self.topk_best:
             return None
-        # Lowest coverage leaves first. Equal coverage keeps the smaller digest.
-        digest, coverage = min(self.topk_best.items(), key=lambda item: (item[1], -item[0]))
-        return digest, coverage
+        # Lowest score leaves first. Equal scores keep the smaller digest.
+        digest, score = min(self.topk_best.items(), key=lambda item: (item[1], -item[0]))
+        return digest, score
 
-    def _topk_drop_new(self, coverage: int, digest: int) -> bool:
-        """Reject a digest that cannot enter the bounded coverage set. O(limit)."""
+    def _topk_drop_new(self, score: int, digest: int) -> bool:
+        """Reject a digest that cannot enter the bounded set. O(limit).
+
+        `score` is coverage in every mode except MODE_FREQ, where it is
+        coverage*frequency. `topk_best` stores whichever one the cell's mode
+        produced, and a cell never changes mode, so the comparison is always
+        between like quantities.
+        """
         limit = self._topk_limit()
         if limit <= 0 or digest in self.topk_best or len(self.topk_best) < limit:
             return False
         worst = self._topk_worst()
         if worst is None:
             return False
-        worst_digest, worst_coverage = worst
-        if coverage > worst_coverage:
+        worst_digest, worst_score = worst
+        if score > worst_score:
             return False
-        if coverage == worst_coverage and digest < worst_digest:
+        if score == worst_score and digest < worst_digest:
             return False
         return True
 
     def trim_global_topk(self) -> None:
-        """Shrink the live digest set to the coverage limit.
+        """Shrink the live digest set to the admission limit.
 
         The set is maintained as frames are admitted, so this only evicts the
         current worst digest. It does not walk a queue that has grown without
@@ -612,7 +646,11 @@ class Relay:
         if kind == K_UP and (instance, digest) not in self.queued_up:
             self.queued_up[(instance, digest)] = data
         if kind == K_UP:
-            self._topk_add(digest, coverage)
+            # The frame still carries the frequency it was admitted with, so
+            # re-adding it at coverage alone would let a requeued entry be
+            # evicted sooner than the same entry was admitted.
+            freq = FREQ.unpack(data[32:36])[0] if self.mode == MODE_FREQ else 0
+            self._topk_add(digest, self._topk_score(coverage, freq))
 
     def _dequeue(self) -> bytes | None:
         """Pop the next live frame and drop its top-k count. None if only ghosts remain."""
