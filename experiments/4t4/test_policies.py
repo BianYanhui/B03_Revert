@@ -45,9 +45,10 @@ def configure(r: object, mode: int, *, merge: bool = False, priority: bool = Fal
     r.rate_last = time.monotonic()
 
 
-def up(seq: int, owner: int = 0, digest: int = 7, coverage: int = 1024, age: float = 0.0) -> tuple[bytes, float]:
+def up(seq: int, owner: int = 0, digest: int = 7, coverage: int = 1024, age: float = 0.0,
+       freq: int = 0) -> tuple[bytes, float]:
     sent = time.time() - age
-    return gw.frame(gw.K_UP, owner, 17, seq, coverage, digest, sent), sent
+    return gw.frame(gw.K_UP, owner, 17, seq, coverage, digest, sent, freq=freq), sent
 
 
 def tomb(seq: int, owner: int = 0, digest: int = 7) -> tuple[bytes, float]:
@@ -90,6 +91,47 @@ def main() -> None:
     rows.append({"policy": "StaticSemantic", "check": "replica cap and non-preemptive tombstone priority",
                  "status": "PASS" if r.drops["replica_cap"] == 1 and len(r.pqueue) == 1 else "FAIL",
                  "detail": json.dumps({"duplicate_holder": r.drops["replica_cap"], "priority_queue": len(r.pqueue)})})
+
+    # MODE_FREQ: a short prefix advertised repeatedly must outrank a long one
+    # advertised once, and must still do so through the payload the sender sets.
+    r = relay()
+    configure(r, gw.MODE_FREQ, merge=True, priority=True, dedup=2)
+    r.global_topk = 2
+    stamp = time.time()
+    r.enqueue(gw.frame(gw.K_UP, 0, 17, 1, 4096, 1, stamp, freq=1), gw.K_UP, 0, 1, 4096, 1, stamp)
+    for seq in range(2, 9):
+        r.enqueue(gw.frame(gw.K_UP, 1, 17, seq, 1024, 2, stamp, freq=seq - 1),
+                  gw.K_UP, 1, seq, 1024, 2, stamp)
+    kept = set(r.topk_best)
+    rows.append({
+        "policy": "StaticTopKFreq",
+        "check": "repeated short prefix outranks a single long one",
+        "status": "PASS" if 2 in kept and r.topk_best[2] > r.topk_best.get(1, 0) else "FAIL",
+        "detail": json.dumps({"topk_best": dict(r.topk_best), "kept": sorted(kept)}),
+    })
+
+    # A frequency claim must be inert outside MODE_FREQ: enabling the field on a
+    # sender must not change what a StaticTopK cell admits.
+    def static_kept_with(count_freq: bool) -> list[int]:
+        relay_instance = relay()
+        configure(relay_instance, gw.MODE_STATIC, merge=True, priority=True, dedup=2)
+        relay_instance.global_topk = 2
+        stamp_inner = time.time()
+        sequence = [(4096, 1, 1), (1024, 2, 1), (1024, 2, 2), (1024, 2, 3)]
+        for index, (coverage, digest, freq) in enumerate(sequence):
+            relay_instance.enqueue(
+                gw.frame(gw.K_UP, 0, 17, index, coverage, digest, stamp_inner,
+                         freq=freq if count_freq else 0),
+                gw.K_UP, 0, index, coverage, digest, stamp_inner,
+            )
+        return sorted(relay_instance.topk_best)
+
+    rows.append({
+        "policy": "StaticTopK16",
+        "check": "a frequency claim is inert outside MODE_FREQ",
+        "status": "PASS" if static_kept_with(False) == static_kept_with(True) else "FAIL",
+        "detail": json.dumps({"without": static_kept_with(False), "with": static_kept_with(True)}),
+    })
 
     r = relay()
     configure(r, gw.MODE_FULLSYNC, dedup=2)

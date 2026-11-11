@@ -54,6 +54,14 @@ BLOCKS = {
         "seeds": 1,
         "workload": "base",
     },
+    "freq": {
+        # Paired against the coverage-only rule on the workload where the two
+        # should differ most (ov60) and on base, where they must not.
+        "scenarios": "ultrahigh",
+        "methods": "StaticTopK16,StaticTopKFreq16,StaticTopKFreq8,BoundedSemantic16,Ideal",
+        "seeds": 2,
+        "workloads": ("ov60", "base"),
+    },
 }
 
 

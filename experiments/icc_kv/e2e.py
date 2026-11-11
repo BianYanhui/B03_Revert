@@ -199,8 +199,10 @@ class ControlPlane:
 
         self._submit(halt())
 
-    def emit(self, kind: int, worker: int, cell: int, seq: int, coverage: int, digest: int) -> None:
-        self._submit(self.runtime.send_foreground(kind, worker, cell, seq, coverage, digest, time.time()))
+    def emit(self, kind: int, worker: int, cell: int, seq: int, coverage: int, digest: int, freq: int = 0) -> None:
+        self._submit(self.runtime.send_foreground(
+            kind, worker, cell, seq, coverage, digest, time.time(), freq=freq,
+        ))
 
     def view(self) -> dict[tuple[int, int], int]:
         return self.runtime.dispatcher.snapshot()
@@ -501,12 +503,16 @@ async def run_e2e(
                         installed_at: dict[tuple[int, int], float] = {}
                         tomb_at: dict[tuple[int, int], float] = {}
                         sent_slot_version_worker: set[tuple[int, int, int]] = set()
+                        # How many times each worker has already advertised this
+                        # digest in this cell. MODE_FREQ ranks by coverage times
+                        # this count; every other method ignores it.
+                        ad_counts: dict[tuple[int, int], int] = {}
 
                         def flush_emits() -> None:
                             batch = pending_emits[:]
                             pending_emits.clear()
-                            for kind, worker, seq, coverage, digest in batch:
-                                control.emit(kind, worker, cell_id, seq, coverage, digest)
+                            for kind, worker, seq, coverage, digest, freq in batch:
+                                control.emit(kind, worker, cell_id, seq, coverage, digest, freq)
 
                         def invalidate_slot(slot: int) -> None:
                             versions[slot] += 1
@@ -522,7 +528,7 @@ async def run_e2e(
                                 if method == "Ideal":
                                     control.clear_local(worker, digest)
                                 else:
-                                    pending_emits.append((K_TOMB, worker, seq_box[0], 0, digest))
+                                    pending_emits.append((K_TOMB, worker, seq_box[0], 0, digest, 0))
                                     seq_box[0] += 1
 
                         async def probe() -> None:
@@ -649,7 +655,12 @@ async def run_e2e(
                                     if method == "Ideal":
                                         control.set_local(routed, decision["digest"], slot_cov[slot])
                                     else:
-                                        pending_emits.append((K_UP, routed, seq_box[0], slot_cov[slot], decision["digest"]))
+                                        ad_key = (routed, decision["digest"])
+                                        ad_counts[ad_key] = ad_counts.get(ad_key, 0) + 1
+                                        pending_emits.append((
+                                            K_UP, routed, seq_box[0], slot_cov[slot],
+                                            decision["digest"], ad_counts[ad_key],
+                                        ))
                                         seq_box[0] += 1
                                     for victim in evicted:
                                         victim_digest = formal.digest64(victim)
@@ -659,7 +670,7 @@ async def run_e2e(
                                         if method == "Ideal":
                                             control.clear_local(routed, victim_digest)
                                         else:
-                                            pending_emits.append((K_TOMB, routed, seq_box[0], 0, victim_digest))
+                                            pending_emits.append((K_TOMB, routed, seq_box[0], 0, victim_digest, 0))
                                             seq_box[0] += 1
                                     prefill = max(0, int(response["input_tokens"] or 0) - cached)
                                     records.append({
